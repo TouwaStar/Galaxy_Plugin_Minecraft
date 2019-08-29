@@ -3,5 +3,7 @@ UNTILL GALAXY API STARTS RECOGNIZING MINECRAFT AS A SEPARATE PLATFORM IT WILL AP
 Usage:
 
 copy minecraft_macosx folder to ~/Library/Application Support/GOG.com/Galaxy/plugins/installed
+
 or 
+
 copy minecraft_windows folder to AppData\Local\GOG.com\Galaxy\plugins\installed 
