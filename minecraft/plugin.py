@@ -15,6 +15,8 @@ import os
 import subprocess
 from local import LocalClient
 import asyncio
+import requests
+import tempfile
 
 
 class MinecraftPlugin(Plugin):
@@ -41,9 +43,13 @@ class MinecraftPlugin(Plugin):
 
     async def install_game(self, game_id):
         if sys.platform == 'win32':
-            webbrowser.open("https://launcher.mojang.com/download/MinecraftInstaller.msi")
+            r = requests.get("https://launcher.mojang.com/download/MinecraftInstaller.msi")
+            installer_path = os.path.join(tempfile.gettempdir(), 'MinecraftInstaller.msi')
+            open(installer_path, 'wb').write(r.content)
+            log.info(installer_path)
+            subprocess.Popen(installer_path, shell=True)
         else:
-            webbrowser.open("https://launcher.mojang.com/download/Minecraft.dmg")
+            r = requests.get("https://launcher.mojang.com/download/Minecraft.dmg")
 
     async def launch_game(self, game_id):
         if sys.platform == 'win32':
