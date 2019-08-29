@@ -103,10 +103,7 @@ class MinecraftPlugin(Plugin):
             self.minecraft_installation_status = LocalGameState.Installed
             self.update_local_game_status(LocalGame('1', LocalGameState.Installed))
 
-
-
     def shutdown(self):
-        # todo
         pass
 
 

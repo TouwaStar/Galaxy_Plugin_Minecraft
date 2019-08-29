@@ -54,13 +54,7 @@ class LocalClient():
             return False
 
     async def was_minecraft_launched(self, process_iter_interval=0.10):
-        
-        # for process in psutil.process_iter():
-        #     try:
-        #         log.info(process.as_dict())
-        #     except:
-        #         continue
-        for process in psutil.process_iter(attrs=['name','exe'], ad_value=''):
+        for process in psutil.process_iter(attrs=['name', 'exe'], ad_value=''):
             await asyncio.sleep(process_iter_interval)
             if process.info['name'].lower() == "minecraftlauncher.exe" or process.info['exe'] == "/Applications/Minecraft.app/Contents/MacOS/launcher":
                 log.info(f"Found a running game!")
