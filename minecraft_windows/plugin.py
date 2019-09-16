@@ -22,7 +22,7 @@ import shutil
 
 class MinecraftPlugin(Plugin):
     def __init__(self, reader, writer, token):
-        super().__init__(Platform.BestBuy, __version__, reader, writer, token)
+        super().__init__(Platform.Minecraft, __version__, reader, writer, token)
         self.local_client = LocalClient()
         self.minecraft_launcher = None
         self.minecraft_uninstall_command = None
