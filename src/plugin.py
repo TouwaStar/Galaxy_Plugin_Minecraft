@@ -94,7 +94,7 @@ class MinecraftPlugin(Plugin):
             self.local_client.is_minecraft_still_running()
         elif self.tick_count % 5 == 0:
             if self.minecraft_launcher and (not self.minecraft_running_check or self.minecraft_running_check.done()):
-                asyncio.create_task(self.local_client.was_minecraft_launched())
+                self.minecraft_running_check = asyncio.create_task(self.local_client.was_minecraft_launched())
 
         if self.minecraft_launcher and self.local_client.running_process and self.minecraft_installation_status != LocalGameState.Installed | LocalGameState.Running:
             self.minecraft_installation_status = LocalGameState.Installed | LocalGameState.Running

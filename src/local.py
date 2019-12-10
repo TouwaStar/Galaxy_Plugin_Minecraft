@@ -53,7 +53,7 @@ class LocalClient():
             self.running_process = None
             return False
 
-    async def was_minecraft_launched(self, process_iter_interval=0.10):
+    async def was_minecraft_launched(self, process_iter_interval=0.15):
         for process in psutil.process_iter(attrs=['name', 'exe'], ad_value=''):
             await asyncio.sleep(process_iter_interval)
             if process.info['name'].lower() == "minecraftlauncher.exe" or process.info['exe'] == "/Applications/Minecraft.app/Contents/MacOS/launcher":
