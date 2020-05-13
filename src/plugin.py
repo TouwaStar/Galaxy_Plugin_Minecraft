@@ -41,6 +41,7 @@ class MinecraftPlugin(Plugin):
         self.minecraft_launcher = self.local_client.get_minecraft_launcher_path()
         if self.minecraft_launcher:
             return [LocalGame('1', LocalGameState.Installed)]
+        return []
 
     async def install_game(self, game_id):
         if sys.platform == 'win32':
