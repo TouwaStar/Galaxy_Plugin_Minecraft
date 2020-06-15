@@ -17,7 +17,7 @@ class LocalClient():
     def get_minecraft_launcher_path(self):
         if sys.platform == 'win32':
             try:
-                reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+                reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
                 with winreg.OpenKey(reg, MINECRAFT_REGISTRY_PATH) as key:
                     install_path = winreg.QueryValueEx(key, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY)[0]
             except OSError:
