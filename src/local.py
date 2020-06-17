@@ -14,7 +14,27 @@ class LocalClient():
     def __init__(self):
         self.running_process = None
 
+    async def get_size_at_path(self, start_path):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                await asyncio.sleep(0)
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+
+        return total_size
+
     def get_minecraft_launcher_path(self):
+        if sys.platform == 'win32':
+            install_path = self.get_minecraft_folder_path()
+            potential_path = os.path.join(install_path, 'MinecraftLauncher.exe')
+            if os.path.exists(potential_path):
+                return potential_path
+        else:
+            return self.get_minecraft_folder_path()
+
+    def get_minecraft_folder_path(self):
         if sys.platform == 'win32':
             try:
                 reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
@@ -22,14 +42,12 @@ class LocalClient():
                     install_path = winreg.QueryValueEx(key, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY)[0]
             except OSError:
                 return None
-            potential_path = os.path.join(install_path, 'MinecraftLauncher.exe')
-            if os.path.exists(potential_path):
-                return potential_path
+            if os.path.exists(install_path):
+                return install_path
         else:
             potential_path = "/Applications/Minecraft.app"
             if os.path.exists(potential_path):
                 return potential_path
-
 
     def find_minecraft_uninstall_command(self):
         if sys.platform == 'win32':

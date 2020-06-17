@@ -5,11 +5,6 @@ from galaxy.api.consts import Platform
 from galaxy.api.types import Authentication, Game, LicenseInfo, LicenseType, LocalGame, LocalGameState
 from version import __version__
 
-
-if sys.platform == 'win32':
-    import winreg
-
-import webbrowser
 import logging as log
 import os
 import subprocess
@@ -18,6 +13,7 @@ import asyncio
 import requests
 import tempfile
 import shutil
+from typing import Optional, Any, List
 
 
 class MinecraftPlugin(Plugin):
@@ -42,6 +38,12 @@ class MinecraftPlugin(Plugin):
         if self.minecraft_launcher:
             return [LocalGame('1', LocalGameState.Installed)]
         return []
+
+    async def prepare_local_size_context(self, game_ids: List[str]) -> Any:
+        return await self.local_client.get_size_at_path(self.local_client.get_minecraft_folder_path())
+
+    async def get_local_size(self, game_id: str, context: Any) -> Optional[int]:
+        return context
 
     async def install_game(self, game_id):
         if sys.platform == 'win32':
