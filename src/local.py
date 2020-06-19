@@ -3,7 +3,7 @@ import sys
 if sys.platform == 'win32':
     import winreg
 
-from consts import MINECRAFT_REGISTRY_PATH, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY, WINDOWS_UNINSTALL_LOCATION
+from consts import MINECRAFT_REGISTRY_PATHS, REGISTRY_START_PATHS, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY, WINDOWS_UNINSTALL_LOCATION
 
 import logging as log
 import os
@@ -36,14 +36,16 @@ class LocalClient():
 
     def get_minecraft_folder_path(self):
         if sys.platform == 'win32':
-            try:
-                reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-                with winreg.OpenKey(reg, MINECRAFT_REGISTRY_PATH) as key:
-                    install_path = winreg.QueryValueEx(key, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY)[0]
-            except OSError:
-                return None
-            if os.path.exists(install_path):
-                return install_path
+            for start_path in REGISTRY_START_PATHS:
+                for minecraft_reg_path in MINECRAFT_REGISTRY_PATHS:
+                    try:
+                        reg = winreg.ConnectRegistry(None, start_path)
+                        with winreg.OpenKey(reg, minecraft_reg_path) as key:
+                            install_path = winreg.QueryValueEx(key, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY)[0]
+                    except OSError:
+                        continue
+                    if os.path.exists(install_path):
+                        return install_path
         else:
             potential_path = "/Applications/Minecraft.app"
             if os.path.exists(potential_path):
