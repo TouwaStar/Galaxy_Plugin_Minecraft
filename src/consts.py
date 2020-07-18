@@ -1,10 +1,29 @@
-import sys
-if sys.platform == 'win32':
+import more_galaxy_utils as utils
+
+if utils.is_windows:
     import winreg
 
+
+class GameID:
+    Minecraft = "mc"
+    MinecraftDungeons = "mcd"
+    MinecraftEducationEdition = "mcedu"
+
+
 REGISTRY_START_PATHS = [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]
-MINECRAFT_REGISTRY_PATHS = ["SOFTWARE\\Mojang\\InstalledProducts\\Minecraft Launcher", "SOFTWARE\\WOW6432Node\\Mojang\\InstalledProducts\\Minecraft Launcher"]
-MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY = "InstallLocation"
-WINDOWS_UNINSTALL_LOCATION = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+SOFTWARE_PATHS = ["SOFTWARE\\", "SOFTWARE\\WOW6432Node\\"]
+mojang_registry_relative_location = "Mojang\\InstalledProducts\\"
+GAME_REGISTY_RELATIVE_LOCATIONS = {
+    GameID.Minecraft: mojang_registry_relative_location + "Minecraft Launcher",
+    GameID.MinecraftDungeons: mojang_registry_relative_location + "Minecraft Dungeons Launcher",
+}
+REGISTRY_EXE_KEYS = {GameID.Minecraft: "InstallExe", GameID.MinecraftDungeons: "InstallFile"}
+WIN_UNINSTALL_RELATIVE_LOCATION = "Microsoft\\Windows\\CurrentVersion\\Uninstall"
+MINECRAFT_WIN_INSTALL_URL = "https://launcher.mojang.com/download/MinecraftInstaller.msi"
+MINECRAFT_MAC_INSTALL_URL = "https://launcher.mojang.com/download/Minecraft.dmg"
+MINECRAFT_DUNGEONS_INSTALL_URL = (
+    "https://launcher.mojang.com/download/MinecraftDungeonsInstaller.msi"
+)
 
 
+GAME_NAMES = {GameID.Minecraft: "Minecraft", GameID.MinecraftDungeons: "Minecraft Dungeons"}

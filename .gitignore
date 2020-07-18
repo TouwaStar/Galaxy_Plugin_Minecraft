@@ -1,2 +1,7 @@
 *.pyc
 *.pyo
+*__pycache__
+out
+.vscode
+galaxy-minecraft-integration-windows.zip
+galaxy-minecraft-integration-mac.zip

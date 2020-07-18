@@ -1,0 +1,83 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select Owned Games</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.imgcheckbox.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $("img").imgCheckbox({
+          checkMarkImage: null,
+          scaleSelected: false,
+          graySelected: false,
+          styles: {
+            "span.imgCheckbox": {
+              "border-radius": "18px",
+              border: "3px solid gray",
+            },
+            "span.imgCheckbox:hover": {
+              cursor: "pointer",
+              "border-color": "white",
+            },
+            "span.imgCheckbox img": {
+              "-webkit-filter": "grayscale(1)",
+              "border-radius": "15px",
+            },
+            "span.imgCheckbox.imgChked img": {
+              "-webkit-filter": "grayscale(0)",
+            },
+          },
+        });
+      });
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      button:hover {
+        cursor: pointer;
+      }
+
+      .main-footer__button--primary {
+        margin-left: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <header class="main-header">
+          <div class="main-header__container">
+            <div class="main-header__title">
+              <h1 class="title">Select your owned games</h1>
+              <p class="subtitle">To view them in GOG Galaxy</p>
+            </div>
+          </div>
+        </header>
+        <section class="main-content">
+          <form action="/finished" method="GET" id="main-form">
+            <p>
+              <img src="img/mc.jpg" alt="minecraft image" name="mc" />
+              <span style="width: 10px;"></span>
+              <img
+                src="img/mcd.jpg"
+                alt="minecraft dungeons image"
+                name="mcd"
+              />
+            </p>
+          </form>
+        </section>
+        <footer class="main-footer">
+          <div class="main-footer__container">
+            <button
+              class="basic-button main-footer__button main-footer__button--primary"
+              type="submit"
+              form="main-form"
+            >
+              Continue
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>
