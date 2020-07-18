@@ -1,6 +1,8 @@
-import more_galaxy_utils as utils
+import platform, os
 
-if utils.is_windows:
+IS_WINDOWS = platform.system().lower() == "windows"
+
+if IS_WINDOWS:
     import winreg
 
 
@@ -9,6 +11,14 @@ class GameID:
     MinecraftDungeons = "mcd"
     MinecraftEducationEdition = "mcedu"
 
+
+INSTALLED_FOLDER_PATH = os.path.abspath(
+    os.path.expandvars("%localappdata%\\GOG.com\\Galaxy\\plugins\\installed")
+    if IS_WINDOWS
+    else os.path.expanduser("~/Library/Application Support/GOG.com/Galaxy/plugins/installed")
+)
+
+DIRNAME = os.path.abspath(os.path.join(__file__, ".."))
 
 REGISTRY_START_PATHS = [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]
 SOFTWARE_PATHS = ["SOFTWARE\\", "SOFTWARE\\WOW6432Node\\"]

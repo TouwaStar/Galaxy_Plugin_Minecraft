@@ -1,3 +1,7 @@
+import os, asyncio, logging
+
+import psutil
+
 from consts import (
     GameID,
     REGISTRY_START_PATHS,
@@ -5,16 +9,12 @@ from consts import (
     GAME_REGISTY_RELATIVE_LOCATIONS,
     REGISTRY_EXE_KEYS,
     WIN_UNINSTALL_RELATIVE_LOCATION,
+    IS_WINDOWS,
 )
-import more_galaxy_utils as utils
-
-import os, asyncio, logging
+import utils
 
 
-import psutil
-from send2trash import send2trash
-
-if utils.is_windows:
+if IS_WINDOWS:
     import winreg
 
 log = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ class LocalClient:
         if exe is not None and folder_path is not None:
             folder_path = os.path.abspath(folder_path)
             exe = os.path.abspath(exe)
-        log.debug(f"found folder path: {folder_path}")
-        log.debug(f"found path: {exe}")
+        log.debug(f"folder path for {game_id}: {folder_path}")
+        log.debug(f"path for {game_id}: {exe}")
         return exe if not folder else folder_path
 
     def is_game_still_running(self, game_id) -> bool:
@@ -129,9 +129,7 @@ class MacLocalClient(LocalClient):
         return super().find_launcher_path(game_id, folder=folder)
 
     def uninstall(self, game_id):
-        path = self.find_launcher_path(game_id, folder=True)
-        if utils.popup_yes_no(f'Move "{path}" to trash?', f"Uninstall {game_id}"):
-            send2trash(path)
+        utils.send2trash(self.find_launcher_path(game_id, folder=True))
 
     async def was_game_launched(self, process_iter_interval=0.15):
         for p in psutil.process_iter(attrs=["exe"], ad_value=""):

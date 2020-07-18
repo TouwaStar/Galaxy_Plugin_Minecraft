@@ -1,4 +1,4 @@
-import sys, asyncio, logging, urllib, os, json
+import sys, asyncio, logging, urllib, os, json, pickle
 from galaxy.api.plugin import (
     Plugin,
     LocalGame,
@@ -7,8 +7,9 @@ from galaxy.api.plugin import (
     create_and_run_plugin,
     NextStep,
 )
-from galaxy.api.consts import LocalGameState, LicenseType, OSCompatibility
+from galaxy.api.consts import LocalGameState, LicenseType, OSCompatibility, Platform
 from galaxy.api.types import LicenseInfo
+from galaxyutils import time_tracker
 
 from local import WindowsLocalClient, MacLocalClient
 from consts import (
@@ -17,16 +18,21 @@ from consts import (
     MINECRAFT_MAC_INSTALL_URL,
     MINECRAFT_WIN_INSTALL_URL,
     GAME_NAMES,
+    IS_WINDOWS,
+    INSTALLED_FOLDER_PATH,
+    DIRNAME,
 )
-import more_galaxy_utils as utils
+import utils
+from version import __version__
+
 
 log = logging.getLogger(__name__)
 
 
 class MinecraftPlugin(Plugin):
     def __init__(self, reader, writer, token):
-        super().__init__(utils.manifest.platform, utils.manifest.version, reader, writer, token)
-        self.local_client = WindowsLocalClient() if utils.is_windows else MacLocalClient()
+        super().__init__(Platform.Minecraft, __version__, reader, writer, token)
+        self.local_client = WindowsLocalClient() if IS_WINDOWS else MacLocalClient()
         self.status = {
             GameID.Minecraft: LocalGameState.None_,
             GameID.MinecraftDungeons: LocalGameState.None_,
@@ -47,7 +53,7 @@ class MinecraftPlugin(Plugin):
                 "window_title": "Select Owned Games",
                 "window_width": 720,
                 "window_height": 720,
-                "start_uri": os.path.join(utils.dirname, "page", "index.html"),
+                "start_uri": os.path.join(DIRNAME, "page", "index.html"),
                 "end_uri_regex": ".*finished.*",
             },
         )
@@ -98,15 +104,13 @@ class MinecraftPlugin(Plugin):
 
     async def install_game(self, game_id):
         if game_id == GameID.Minecraft:
-            url = MINECRAFT_WIN_INSTALL_URL if utils.is_windows else MINECRAFT_MAC_INSTALL_URL
+            url = MINECRAFT_WIN_INSTALL_URL if IS_WINDOWS else MINECRAFT_MAC_INSTALL_URL
         elif game_id == GameID.MinecraftDungeons:
             url = MINECRAFT_DUNGEONS_INSTALL_URL
         else:
             log.warning(f"Uknown game_id to install: {game_id}")
             return
         installer_path = utils.download(url)
-        if installer_path is None:
-            return
         log.info(f"Installing {game_id} by launching: {installer_path}")
         utils.open_path(installer_path)
 
@@ -129,6 +133,7 @@ class MinecraftPlugin(Plugin):
                 self.local_client.is_game_still_running(game_id)
                 and self.status[game_id] != LocalGameState.Installed | LocalGameState.Running
             ):
+                log.debug(f"Starting to track time for {game_id}")
                 self.game_time_tracker.start_tracking_game(game_id)
                 self.status[game_id] = LocalGameState.Installed | LocalGameState.Running
                 self.update_local_game_status(LocalGame(game_id, self.status[game_id]))
@@ -137,8 +142,11 @@ class MinecraftPlugin(Plugin):
                 and pth is not None
                 and self.status[game_id] != LocalGameState.Installed
             ):
-                if self.game_time_tracker.is_game_being_tracked(game_id):
+                try:
                     self.game_time_tracker.stop_tracking_game(game_id)
+                    log.debug(f"Stopped tracking time for {game_id}")
+                except time_tracker.GameNotTrackedException:
+                    pass
                 self.status[game_id] = LocalGameState.Installed
                 self.update_local_game_status(LocalGame(game_id, self.status[game_id]))
             elif pth is None and self.status[game_id] != LocalGameState.None_:
@@ -151,18 +159,53 @@ class MinecraftPlugin(Plugin):
         if self.update_task is None or self.update_task.done():
             self.update_task = self.create_task(self._update(), "Update Task")
 
+    # Time Tracker
+
     async def get_game_time(self, game_id, context):
-        return self.game_time_tracker.get_tracked_time(game_id)
+        try:
+            time = self.game_time_tracker.get_tracked_time(game_id)
+        except time_tracker.GameNotTrackedException:
+            time = None
+        log.debug(f"Got game time: {time}")
+        return time
 
     def handshake_complete(self):
-        self.game_time_tracker = utils.BetterTimeTracker(self)
+        self.play_time_cache_path = os.path.join(
+            INSTALLED_FOLDER_PATH, "minecraft_play_time_cache.txt"
+        )
+        log.debug(f"Local Play Time Cache Path: {self.play_time_cache_path}")
+        if "game_time_cache" in self.persistent_cache:
+            self.game_time_cache = pickle.loads(
+                bytes.fromhex(self.persistent_cache["game_time_cache"])
+            )
+        else:
+            try:
+                file = open(self.play_time_cache_path, "r")
+                for line in file.readlines():
+                    if line[:1] != "#":
+                        self.game_time_cache = pickle.loads(bytes.fromhex(line))
+                        break
+            except FileNotFoundError:
+                self.game_time_cache = None
+        self.game_time_tracker = time_tracker.TimeTracker(game_time_cache=self.game_time_cache)
 
     async def shutdown(self):
-        self.game_time_tracker.shutdown()
+        if self.game_time_cache is not None:
+            with open(self.play_time_cache_path, "w+") as file:
+                file.write("# DO NOT EDIT THIS FILE\n")
+                file.write(self.game_time_tracker.get_time_cache_hex())
+                log.info("Wrote to local file cache")
         await super().shutdown()
 
     def game_times_import_complete(self):
-        if not self.game_time_tracker.update_cache():
+        try:
+            self.game_time_cache = self.game_time_tracker.get_time_cache()
+            log.debug(f"game_time_cache: {self.game_time_cache}")
+            self.persistent_cache["game_time_cache"] = self.game_time_tracker.get_time_cache_hex()
+            self._connection.send_notification(
+                "push_cache", params={"data": self._persistent_cache}
+            )  # push cache without marking it sensitive (better for debug)
+        except time_tracker.GamesStillBeingTrackedException:
             log.debug("Game time still being tracked. No setting cache yet.")
 
 
