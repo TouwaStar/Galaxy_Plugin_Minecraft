@@ -1,3 +1,5 @@
+// From: https://jcuenod.github.io/imgCheckbox/
+
 /*
  * imgCheckbox
  *
