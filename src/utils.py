@@ -1,9 +1,10 @@
-import platform, os, asyncio, logging, subprocess, tempfile
+import os, asyncio, logging, subprocess, tempfile
 
 import requests
 import send2trash as s2t
+from galaxy.api.plugin import NextStep
 
-from consts import IS_WINDOWS
+from consts import IS_WINDOWS, DIRNAME
 
 log = logging.getLogger(__name__)
 
@@ -47,3 +48,26 @@ def download(url) -> str:
 def send2trash(path):
     log.info(f"Moving to trash: {path}")
     s2t(os.path.abspath(path))
+
+
+def get_next_step(
+    title: str, width: int, height: int, page: str, *, end_uri_regex=".*finished.*", params=""
+) -> NextStep:
+    return NextStep(
+        "web_session",
+        {
+            "window_title": title,
+            "window_width": width + 20,
+            "window_height": height + 30,
+            "start_uri": os.path.join(DIRNAME, "page", f"{page}.html{params}"),
+            "end_uri_regex": end_uri_regex,
+        },
+    )
+
+
+def compare(x, y):
+    if x is None:
+        return y
+    if y is None:
+        return x
+    return min(x, y)

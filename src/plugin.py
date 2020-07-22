@@ -1,11 +1,11 @@
-import sys, asyncio, logging, urllib, os, json, pickle
+import sys, asyncio, logging, urllib, os, json, pickle, webbrowser
 from galaxy.api.plugin import (
     Plugin,
     LocalGame,
     Authentication,
     Game,
     create_and_run_plugin,
-    NextStep,
+    GameTime,
 )
 from galaxy.api.consts import LocalGameState, LicenseType, OSCompatibility, Platform
 from galaxy.api.types import LicenseInfo
@@ -20,9 +20,10 @@ from consts import (
     GAME_NAMES,
     IS_WINDOWS,
     INSTALLED_FOLDER_PATH,
-    DIRNAME,
 )
 import utils
+import multimc
+from decorators import double_click_effect
 from version import __version__
 
 
@@ -41,31 +42,61 @@ class MinecraftPlugin(Plugin):
         self.update_task: asyncio.Task = None
         self.check_sizes_task: asyncio.Task = None
         self.owned = []
+        self.multimc: multimc.MultiMCClient = None
 
     async def authenticate(self, stored_credentials=None):
-        if stored_credentials is not None and "owned" in stored_credentials.keys():
-            self.owned = stored_credentials["owned"]
+        if (
+            stored_credentials is not None
+            and "owned" in self.persistent_cache
+            and "multimcpath" in self.persistent_cache
+        ):
+            self.owned = json.loads(self.persistent_cache["owned"])
+            self.multimc = multimc.MultiMCClient(self.persistent_cache["multimcpath"])
+            log.debug(f"persistent_cache: {self.persistent_cache}")
             return Authentication("mojang_user", "Mojang User")
-        return NextStep(
-            # May have taken some inspiration from FriendsOfGalaxy's steam integration. ;)
-            "web_session",
-            {
-                "window_title": "Select Owned Games",
-                "window_width": 720,
-                "window_height": 720,
-                "start_uri": os.path.join(DIRNAME, "page", "index.html"),
-                "end_uri_regex": ".*finished.*",
-            },
-        )
+        return utils.get_next_step("Select Owned Games", 695, 695, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
-        params = urllib.parse.parse_qs(urllib.parse.urlsplit(credentials["end_uri"]).query)
+        def auth():
+            self.push_cache()
+            log.debug(f"persistent_cache: {self.persistent_cache}")
+            self.store_credentials({"dummy": "dummy"})
+            return Authentication("mojang_user", "Mojang User")
+
+        params = urllib.parse.parse_qs(
+            urllib.parse.urlsplit(credentials["end_uri"]).query, keep_blank_values=True
+        )
         log.debug(f"Params: {params}")
-        for game_id in params.keys():
-            if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
-                self.owned.append(game_id)
-        self.store_credentials({"owned": self.owned})
-        return Authentication("mojang_user", "Mojang User")
+        if len(params) == 0:
+            return auth()
+        elif "install" in params:
+            webbrowser.open_new("https://multimc.org/#Download")
+            return utils.get_next_step("Set your MultiMC path", 445, 445, "page2")
+        elif "path" in params:
+            raw_path = params["path"][0]
+            if raw_path == "":
+                self.persistent_cache["multimcpath"] = ""
+                return auth()
+            else:
+                path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
+                try:
+                    self.multimc = multimc.MultiMCClient(path)
+                except multimc.PathNotExectuable:
+                    return utils.get_next_step(
+                        "Set your MultiMC path",
+                        445,
+                        445,
+                        "page2",
+                        params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
+                    )
+                self.persistent_cache["multimcpath"] = path
+                return utils.get_next_step("Finished", 350, 300, "page3", params="?multimc=true",)
+        else:
+            for game_id in params.keys():
+                if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
+                    self.owned.append(game_id)
+            self.persistent_cache["owned"] = json.dumps(self.owned)
+            return utils.get_next_step("Set your MultiMC path", 445, 445, "page2")
 
     async def get_owned_games(self):
         log.debug(f"self.owned: {self.owned}")
@@ -92,11 +123,14 @@ class MinecraftPlugin(Plugin):
     async def prepare_local_size_context(self, game_ids):
         sizes = []
         for game_id in game_ids:
-            sizes.append(
-                await utils.get_size_at_path(
-                    self.local_client.find_launcher_path(game_id, folder=True)
-                )
+            size = await utils.get_size_at_path(
+                self.local_client.find_launcher_path(game_id, folder=True)
             )
+            if game_id == GameID.Minecraft and self.multimc_enabled():
+                if size is None:
+                    size = 0
+                size += await utils.get_size_at_path(self.multimc.folder)
+            sizes.append(size)
         return dict(zip(game_ids, sizes))
 
     async def get_local_size(self, game_id: str, context):
@@ -114,9 +148,21 @@ class MinecraftPlugin(Plugin):
         log.info(f"Installing {game_id} by launching: {installer_path}")
         utils.open_path(installer_path)
 
+    def launch_multimc(self):
+        self.multimc.launch()
+
+    def multimc_enabled(self):
+        return self.multimc is not None
+
+    @double_click_effect(timeout=0.5, effect="launch_multimc", if_func="multimc_enabled")
     async def launch_game(self, game_id):
-        log.info(f"Launching {game_id}")
-        utils.open_path(self.local_client.find_launcher_path(game_id))
+        pth = self.local_client.find_launcher_path(game_id)
+        if game_id == GameID.Minecraft and pth is None and self.multimc_enabled():
+            log.info("Launching MultiMC")
+            self.multimc.launch()
+        else:
+            log.info(f"Launching {game_id}")
+            utils.open_path(pth)
 
     async def uninstall_game(self, game_id):
         log.info(f"Uninstalling {game_id}")
@@ -127,32 +173,34 @@ class MinecraftPlugin(Plugin):
             self.was_game_launched_task = self.create_task(
                 self.local_client.was_game_launched(), "Was Game Launched Task"
             )
+
+        def update(game_id, status: LocalGameState):
+            if self.status[game_id] != status:
+                self.status[game_id] = status
+                self.update_local_game_status(LocalGame(game_id, status))
+                log.info(f"Updated {game_id} to {status}")
+                return True
+            return False
+
         for game_id in self.owned:
-            pth = self.local_client.find_launcher_path(game_id)
-            if (
-                self.local_client.is_game_still_running(game_id)
-                and self.status[game_id] != LocalGameState.Installed | LocalGameState.Running
-            ):
-                log.debug(f"Starting to track time for {game_id}")
-                self.game_time_tracker.start_tracking_game(game_id)
-                self.status[game_id] = LocalGameState.Installed | LocalGameState.Running
-                self.update_local_game_status(LocalGame(game_id, self.status[game_id]))
-            elif (
-                not self.local_client.is_game_still_running(game_id)
-                and pth is not None
-                and self.status[game_id] != LocalGameState.Installed
-            ):
-                try:
-                    self.game_time_tracker.stop_tracking_game(game_id)
-                    log.debug(f"Stopped tracking time for {game_id}")
-                except time_tracker.GameNotTrackedException:
-                    pass
-                self.status[game_id] = LocalGameState.Installed
-                self.update_local_game_status(LocalGame(game_id, self.status[game_id]))
-            elif pth is None and self.status[game_id] != LocalGameState.None_:
-                self.status[game_id] = LocalGameState.None_
-                self.update_local_game_status(LocalGame(game_id, self.status[game_id]))
-        log.debug(f"game status: {self.status}")
+            is_installed = self.local_client.find_launcher_path(game_id) is not None
+            if game_id == GameID.Minecraft and self.multimc_enabled() and self.multimc.running():
+                update(game_id, LocalGameState.Installed | LocalGameState.Running)
+            elif self.local_client.is_game_still_running(game_id):
+                if update(game_id, LocalGameState.Installed | LocalGameState.Running):
+                    log.info(f"Starting to track {game_id}")
+                    self.game_time_tracker.start_tracking_game(game_id)
+            elif game_id == GameID.Minecraft and self.multimc_enabled():
+                update(game_id, LocalGameState.Installed)
+            elif is_installed:
+                if update(game_id, LocalGameState.Installed):
+                    try:
+                        self.game_time_tracker.stop_tracking_game(game_id)
+                        log.debug(f"Stopped tracking time for {game_id}")
+                    except time_tracker.GameNotTrackedException:
+                        pass
+            else:
+                update(game_id, LocalGameState.None_)
         await asyncio.sleep(0)
 
     def tick(self):
@@ -163,11 +211,19 @@ class MinecraftPlugin(Plugin):
 
     async def get_game_time(self, game_id, context):
         try:
-            time = self.game_time_tracker.get_tracked_time(game_id)
+            tracked_time = self.game_time_tracker.get_tracked_time(game_id)
         except time_tracker.GameNotTrackedException:
-            time = None
+            pass
+        if self.multimc_enabled() and game_id == GameID.Minecraft:
+            multimc_time = self.multimc.get_time()
+        else:
+            multimc_time = GameTime(game_id, 0, None)
+        time = tracked_time.time_played + multimc_time.time_played
+        lastPlayed = utils.compare(tracked_time.last_played_time, multimc_time.last_played_time)
         log.debug(f"Got game time: {time}")
-        return time
+        if time == 0 or lastPlayed is None:
+            return None
+        return GameTime(game_id, time, lastPlayed)
 
     def handshake_complete(self):
         self.play_time_cache_path = os.path.join(
@@ -191,10 +247,13 @@ class MinecraftPlugin(Plugin):
 
     async def shutdown(self):
         if self.game_time_cache is not None:
-            with open(self.play_time_cache_path, "w+") as file:
-                file.write("# DO NOT EDIT THIS FILE\n")
-                file.write(self.game_time_tracker.get_time_cache_hex())
-                log.info("Wrote to local file cache")
+            try:
+                with open(self.play_time_cache_path, "w+") as file:
+                    file.write("# DO NOT EDIT THIS FILE\n")
+                    file.write(self.game_time_tracker.get_time_cache_hex())
+                    log.info("Wrote to local file cache")
+            except time_tracker.GamesStillBeingTrackedException:
+                log.debug("Game time still being tracked. Not setting local cache yet.")
         await super().shutdown()
 
     def game_times_import_complete(self):
@@ -202,11 +261,9 @@ class MinecraftPlugin(Plugin):
             self.game_time_cache = self.game_time_tracker.get_time_cache()
             log.debug(f"game_time_cache: {self.game_time_cache}")
             self.persistent_cache["game_time_cache"] = self.game_time_tracker.get_time_cache_hex()
-            self._connection.send_notification(
-                "push_cache", params={"data": self._persistent_cache}
-            )  # push cache without marking it sensitive (better for debug)
+            self.push_cache()
         except time_tracker.GamesStillBeingTrackedException:
-            log.debug("Game time still being tracked. No setting cache yet.")
+            log.debug("Game time still being tracked. Not setting cache yet.")
 
 
 def main():

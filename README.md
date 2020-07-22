@@ -13,3 +13,7 @@ Note: I haven't tested it on mac yet but it should work.
 ## FAQ
 
 _How to change what games I own (owned games selection)?_ Just disconnect and reconnect. The play time should be kept. If there is an issue please submit an issue.
+
+## Credits
+
+- Info icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](http://www.flaticon.com/)
