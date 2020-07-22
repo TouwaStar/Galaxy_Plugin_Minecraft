@@ -1,4 +1,5 @@
-# Taken from: https://github.com/UncleGoogle/galaxy-integration-humblebundle/blob/b11918aefac05b904964a8d5330ee1547f11793c/src/utils/decorators.py # noqa: E501
+# Taken and slightly modified from:
+# https://github.com/UncleGoogle/galaxy-integration-humblebundle/blob/b11918aefac05b904964a8d5330ee1547f11793c/src/utils/decorators.py # noqa: E501
 
 import asyncio
 from contextlib import suppress
