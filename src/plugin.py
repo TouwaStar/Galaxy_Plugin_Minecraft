@@ -126,7 +126,7 @@ class MinecraftPlugin(Plugin):
             size = await utils.get_size_at_path(
                 self.local_client.find_launcher_path(game_id, folder=True)
             )
-            if game_id == GameID.Minecraft and self.multimc_enabled():
+            if game_id == GameID.Minecraft and self._multimc_enabled():
                 if size is None:
                     size = 0
                 size += await utils.get_size_at_path(self.multimc.folder)
@@ -148,32 +148,26 @@ class MinecraftPlugin(Plugin):
         log.info(f"Installing {game_id} by launching: {installer_path}")
         utils.open_path(installer_path)
 
-    def launch_multimc(self):
+    def _launch_multimc(self):
         self.multimc.launch()
 
-    def multimc_enabled(self):
+    def _multimc_enabled(self):
         return self.multimc is not None
 
-    @double_click_effect(timeout=0.5, effect="launch_multimc", if_func="multimc_enabled")
+    @double_click_effect(timeout=0.5, effect="_launch_multimc", if_func="_multimc_enabled")
     async def launch_game(self, game_id):
         pth = self.local_client.find_launcher_path(game_id)
-        if game_id == GameID.Minecraft and pth is None and self.multimc_enabled():
+        if game_id == GameID.Minecraft and pth is None and self._multimc_enabled():
             log.info("Launching MultiMC")
             self.multimc.launch()
         else:
-            log.info(f"Launching {game_id}")
-            utils.open_path(pth)
+            self.local_client.launch(game_id)
 
     async def uninstall_game(self, game_id):
         log.info(f"Uninstalling {game_id}")
         self.local_client.uninstall(game_id)
 
     async def _update(self):
-        if self.was_game_launched_task is None or self.was_game_launched_task.done():
-            self.was_game_launched_task = self.create_task(
-                self.local_client.was_game_launched(), "Was Game Launched Task"
-            )
-
         def update(game_id, status: LocalGameState):
             if self.status[game_id] != status:
                 self.status[game_id] = status
@@ -184,13 +178,13 @@ class MinecraftPlugin(Plugin):
 
         for game_id in self.owned:
             is_installed = self.local_client.find_launcher_path(game_id) is not None
-            if game_id == GameID.Minecraft and self.multimc_enabled() and self.multimc.running():
+            if game_id == GameID.Minecraft and self._multimc_enabled() and self.multimc.running():
                 update(game_id, LocalGameState.Installed | LocalGameState.Running)
             elif self.local_client.is_game_still_running(game_id):
                 if update(game_id, LocalGameState.Installed | LocalGameState.Running):
                     log.info(f"Starting to track {game_id}")
                     self.game_time_tracker.start_tracking_game(game_id)
-            elif game_id == GameID.Minecraft and self.multimc_enabled():
+            elif game_id == GameID.Minecraft and self._multimc_enabled():
                 update(game_id, LocalGameState.Installed)
             elif is_installed:
                 if update(game_id, LocalGameState.Installed):
@@ -214,7 +208,7 @@ class MinecraftPlugin(Plugin):
             tracked_time = self.game_time_tracker.get_tracked_time(game_id)
         except time_tracker.GameNotTrackedException:
             pass
-        if self.multimc_enabled() and game_id == GameID.Minecraft:
+        if self._multimc_enabled() and game_id == GameID.Minecraft:
             multimc_time = self.multimc.get_time()
         else:
             multimc_time = GameTime(game_id, 0, None)

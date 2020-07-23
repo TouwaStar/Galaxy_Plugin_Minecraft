@@ -26,7 +26,7 @@ async def get_size_at_path(start_path):
 def open_path(path):
     cmd = f'"{path}"'
     if not IS_WINDOWS:
-        cmd = "open " + cmd
+        cmd = "open --wait-apps " + cmd
     log.info(f"Opening: {path}")
     return run(cmd)
 

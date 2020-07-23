@@ -1,6 +1,4 @@
-import os, asyncio, logging
-
-import psutil
+import os, logging
 
 from consts import (
     GameID,
@@ -41,15 +39,16 @@ class LocalClient:
 
     def is_game_still_running(self, game_id) -> bool:
         rp = self.running_games[game_id]  # Just an alias
-        if rp is not None and rp.is_running():
+        if rp is not None and rp.poll() is None:
             return True
-        elif rp is not None and not rp.is_running():
+        elif rp is not None and not rp.poll() is not None:
             # Can't use rp alias as it won't update the dict.
             self.running_games[game_id] = None
         return False
 
-    async def check_games_launched(self):
-        pass
+    def launch(self, game_id):
+        log.info(f"Launching {game_id}")
+        self.running_games[game_id] = utils.open_path(self.find_launcher_path(game_id))
 
     def uninstall(game_id):
         pass
@@ -101,24 +100,6 @@ class WindowsLocalClient(LocalClient):
                         pass
                 winreg.CloseKey(key)
 
-    async def was_game_launched(self, process_iter_interval=0.15):
-        found_mc, found_mcd = False, False
-        for p in psutil.process_iter(attrs=["name"], ad_value=""):
-            # await asyncio.sleep(process_iter_interval)
-            if p.info["name"].lower() == "minecraftlauncher.exe":
-                self.running_games[GameID.Minecraft] = p
-                found_mc = True
-            elif p.info["name"].lower() == "minecraftdungeonslauncher.exe":
-                self.running_games[GameID.MinecraftDungeons] = p
-                found_mcd = True
-            if found_mc and found_mcd:
-                return
-        if not found_mc:
-            self.running_games[GameID.Minecraft] = None
-        if not found_mcd:
-            self.running_games[GameID.MinecraftDungeons] = None
-        await asyncio.sleep(5)
-
 
 class MacLocalClient(LocalClient):
     def find_launcher_path(self, game_id, *, folder=False):
@@ -130,12 +111,3 @@ class MacLocalClient(LocalClient):
 
     def uninstall(self, game_id):
         utils.send2trash(self.find_launcher_path(game_id, folder=True))
-
-    async def was_game_launched(self, process_iter_interval=0.15):
-        for p in psutil.process_iter(attrs=["exe"], ad_value=""):
-            await asyncio.sleep(process_iter_interval)
-            if p.info["exe"] == "/Applications/Minecraft.app/Contents/MacOS/launcher":
-                self.running_games[GameID.Minecraft] = p
-                return
-        self.running_games[GameID.Minecraft] = None
-        await asyncio.sleep(5)
