@@ -71,7 +71,7 @@ class MinecraftPlugin(Plugin):
             return auth()
         elif "install" in params:
             webbrowser.open_new("https://multimc.org/#Download")
-            return utils.get_next_step("Set your MultiMC path", 445, 445, "page2")
+            return utils.get_next_step("Set your MultiMC path", 475, 445, "page2")
         elif "path" in params:
             raw_path = params["path"][0]
             if raw_path == "":
@@ -96,7 +96,7 @@ class MinecraftPlugin(Plugin):
                 if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
                     self.owned.append(game_id)
             self.persistent_cache["owned"] = json.dumps(self.owned)
-            return utils.get_next_step("Set your MultiMC path", 445, 445, "page2")
+            return utils.get_next_step("Set your MultiMC path", 475, 445, "page2")
 
     async def get_owned_games(self):
         log.debug(f"self.owned: {self.owned}")
@@ -207,7 +207,7 @@ class MinecraftPlugin(Plugin):
         try:
             tracked_time = self.game_time_tracker.get_tracked_time(game_id)
         except time_tracker.GameNotTrackedException:
-            pass
+            tracked_time = GameTime(game_id, 0, None)
         if self._multimc_enabled() and game_id == GameID.Minecraft:
             multimc_time = self.multimc.get_time()
         else:

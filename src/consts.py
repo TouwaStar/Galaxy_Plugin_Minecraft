@@ -4,7 +4,9 @@ IS_WINDOWS = platform.system().lower() == "windows"
 
 if IS_WINDOWS:
     import winreg
-
+    REGISTRY_START_PATHS = [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]
+else:
+    REGISTRY_START_PATHS = []
 
 class GameID:
     Minecraft = "mc"
@@ -20,7 +22,6 @@ INSTALLED_FOLDER_PATH = os.path.abspath(
 
 DIRNAME = os.path.abspath(os.path.join(__file__, ".."))
 
-REGISTRY_START_PATHS = [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]
 SOFTWARE_PATHS = ["SOFTWARE\\", "SOFTWARE\\WOW6432Node\\"]
 mojang_registry_relative_location = "Mojang\\InstalledProducts\\"
 GAME_REGISTY_RELATIVE_LOCATIONS = {

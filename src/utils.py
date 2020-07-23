@@ -1,7 +1,7 @@
-import os, asyncio, logging, subprocess, tempfile
+import os, asyncio, logging, subprocess, tempfile, pathlib
 
 import requests
-import send2trash as s2t
+from send2trash import send2trash as s2t
 from galaxy.api.plugin import NextStep
 
 from consts import IS_WINDOWS, DIRNAME
@@ -59,7 +59,7 @@ def get_next_step(
             "window_title": title,
             "window_width": width + 20,
             "window_height": height + 30,
-            "start_uri": os.path.join(DIRNAME, "page", f"{page}.html{params}"),
+            "start_uri": pathlib.Path(os.path.join(DIRNAME, "page", f"{page}.html")).as_uri() + params,
             "end_uri_regex": end_uri_regex,
         },
     )
