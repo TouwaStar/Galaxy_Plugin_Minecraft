@@ -59,7 +59,8 @@ def get_next_step(
             "window_title": title,
             "window_width": width + 20,
             "window_height": height + 30,
-            "start_uri": pathlib.Path(os.path.join(DIRNAME, "page", f"{page}.html")).as_uri() + params,
+            "start_uri": pathlib.Path(os.path.join(DIRNAME, "page", f"{page}.html")).as_uri()
+            + params,
             "end_uri_regex": end_uri_regex,
         },
     )
@@ -71,3 +72,7 @@ def compare(x, y):
     if y is None:
         return x
     return min(x, y)
+
+
+def IS(items, *, IN):
+    return all(x in IN for x in items)

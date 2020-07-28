@@ -45,22 +45,21 @@ class MinecraftPlugin(Plugin):
         self.multimc: multimc.MultiMCClient = None
 
     async def authenticate(self, stored_credentials=None):
-        if (
-            stored_credentials is not None
-            and "owned" in self.persistent_cache
-            and "multimcpath" in self.persistent_cache
+        log.debug(f"stored_credentials: {stored_credentials}")
+        if stored_credentials is not None and utils.IS(
+            ["owned", "multimcpath"], IN=stored_credentials
         ):
-            self.owned = json.loads(self.persistent_cache["owned"])
-            self.multimc = multimc.MultiMCClient(self.persistent_cache["multimcpath"])
-            log.debug(f"persistent_cache: {self.persistent_cache}")
+            self.owned = json.loads(stored_credentials["owned"])
+            if stored_credentials["multimcpath"] != "null":
+                self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
             return Authentication("mojang_user", "Mojang User")
         return utils.get_next_step("Select Owned Games", 695, 695, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
+        multimcpath = "null"
+
         def auth():
-            self.push_cache()
-            log.debug(f"persistent_cache: {self.persistent_cache}")
-            self.store_credentials({"dummy": "dummy"})
+            self.store_credentials({"owned": json.dumps(self.owned), "multimcpath": multimcpath})
             return Authentication("mojang_user", "Mojang User")
 
         params = urllib.parse.parse_qs(
@@ -75,7 +74,6 @@ class MinecraftPlugin(Plugin):
         elif "path" in params:
             raw_path = params["path"][0]
             if raw_path == "":
-                self.persistent_cache["multimcpath"] = ""
                 return auth()
             else:
                 path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
@@ -89,13 +87,12 @@ class MinecraftPlugin(Plugin):
                         "page2",
                         params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
                     )
-                self.persistent_cache["multimcpath"] = path
+                multimcpath = path
                 return utils.get_next_step("Finished", 350, 300, "page3", params="?multimc=true",)
         else:
             for game_id in params.keys():
                 if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
                     self.owned.append(game_id)
-            self.persistent_cache["owned"] = json.dumps(self.owned)
             return utils.get_next_step("Set your MultiMC path", 475, 445, "page2")
 
     async def get_owned_games(self):
