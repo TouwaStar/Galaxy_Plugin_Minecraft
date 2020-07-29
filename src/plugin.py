@@ -56,10 +56,13 @@ class MinecraftPlugin(Plugin):
         return utils.get_next_step("Select Owned Games", 695, 695, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
-        multimcpath = "null"
-
         def auth():
-            self.store_credentials({"owned": json.dumps(self.owned), "multimcpath": multimcpath})
+            self.store_credentials(
+                {
+                    "owned": json.dumps(self.owned),
+                    "multimcpath": "null" if self.multimc is None else self.multimc.path,
+                }
+            )
             return Authentication("mojang_user", "Mojang User")
 
         params = urllib.parse.parse_qs(
@@ -79,6 +82,9 @@ class MinecraftPlugin(Plugin):
                 path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
                 try:
                     self.multimc = multimc.MultiMCClient(path)
+                    return utils.get_next_step(
+                        "Finished", 350, 300, "page3", params="?multimc=true"
+                    )
                 except multimc.PathNotExectuable:
                     return utils.get_next_step(
                         "Set your MultiMC path",
@@ -87,8 +93,6 @@ class MinecraftPlugin(Plugin):
                         "page2",
                         params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
                     )
-                multimcpath = path
-                return utils.get_next_step("Finished", 350, 300, "page3", params="?multimc=true",)
         else:
             for game_id in params.keys():
                 if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
