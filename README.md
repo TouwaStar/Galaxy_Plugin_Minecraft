@@ -8,7 +8,7 @@ _Note: I haven't tested it on mac yet but it should work._
 
 ## Build
 
-`python build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
+`python3 build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
 
 ## FAQ
 
