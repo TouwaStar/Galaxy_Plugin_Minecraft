@@ -1,84 +1,113 @@
+import os, logging
 
-import sys
-if sys.platform == 'win32':
+from consts import (
+    GameID,
+    REGISTRY_START_PATHS,
+    SOFTWARE_PATHS,
+    GAME_REGISTY_RELATIVE_LOCATIONS,
+    REGISTRY_EXE_KEYS,
+    WIN_UNINSTALL_RELATIVE_LOCATION,
+    IS_WINDOWS,
+)
+import utils
+
+
+if IS_WINDOWS:
     import winreg
 
-from consts import MINECRAFT_REGISTRY_PATHS, REGISTRY_START_PATHS, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY, WINDOWS_UNINSTALL_LOCATION
+log = logging.getLogger(__name__)
 
-import logging as log
-import os
-import psutil
-import asyncio
 
-class LocalClient():
+class LocalClient:
     def __init__(self):
-        self.running_process = None
+        self.running_games = {
+            GameID.Minecraft: None,
+            GameID.MinecraftDungeons: None,
+        }
 
-    async def get_size_at_path(self, start_path):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(start_path):
-            for f in filenames:
-                await asyncio.sleep(0)
-                fp = os.path.join(dirpath, f)
-                if not os.path.islink(fp):
-                    total_size += os.path.getsize(fp)
+    def find_launcher_path(self, game_id, *, folder=False, folder_path=None, exe=None) -> str:
+        if exe is None and folder_path is not None:
+            folder_path = None
+        if exe is not None and folder_path is None:
+            folder_path = exe
+        if exe is not None and folder_path is not None:
+            folder_path = os.path.abspath(folder_path)
+            exe = os.path.abspath(exe)
+        log.debug(f"folder path for {game_id}: {folder_path}")
+        log.debug(f"path for {game_id}: {exe}")
+        return exe if not folder else folder_path
 
-        return total_size
+    def is_game_still_running(self, game_id) -> bool:
+        rp = self.running_games[game_id]  # Just an alias
+        if rp is not None and rp.poll() is None:
+            return True
+        elif rp is not None and not rp.poll() is not None:
+            # Can't use rp alias as it won't update the dict.
+            self.running_games[game_id] = None
+        return False
 
-    def get_minecraft_launcher_path(self):
-        if sys.platform == 'win32':
-            install_path = self.get_minecraft_folder_path()
-            potential_path = os.path.join(install_path, 'MinecraftLauncher.exe')
-            if os.path.exists(potential_path):
-                return potential_path
-        else:
-            return self.get_minecraft_folder_path()
+    def launch(self, game_id):
+        log.info(f"Launching {game_id}")
+        self.running_games[game_id] = utils.open_path(self.find_launcher_path(game_id))
 
-    def get_minecraft_folder_path(self):
-        if sys.platform == 'win32':
-            for start_path in REGISTRY_START_PATHS:
-                for minecraft_reg_path in MINECRAFT_REGISTRY_PATHS:
-                    try:
-                        reg = winreg.ConnectRegistry(None, start_path)
-                        with winreg.OpenKey(reg, minecraft_reg_path) as key:
-                            install_path = winreg.QueryValueEx(key, MINECRAFT_REGISTRY_PATH_INSTALL_LOCATION_KEY)[0]
-                    except OSError:
-                        continue
-                    if os.path.exists(install_path):
-                        return install_path
-        else:
-            potential_path = "/Applications/Minecraft.app"
-            if os.path.exists(potential_path):
-                return potential_path
+    def uninstall(game_id):
+        pass
 
-    def find_minecraft_uninstall_command(self):
-        if sys.platform == 'win32':
-            reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-            with winreg.OpenKey(reg, WINDOWS_UNINSTALL_LOCATION) as key:
+
+class WindowsLocalClient(LocalClient):
+    def find_launcher_path(self, game_id, folder=False):
+        for start_path in REGISTRY_START_PATHS:
+            for software_path in SOFTWARE_PATHS:
+                reg = winreg.ConnectRegistry(None, start_path)
+                try:
+                    with winreg.OpenKey(
+                        reg, software_path + GAME_REGISTY_RELATIVE_LOCATIONS[game_id]
+                    ) as key:
+                        directory = winreg.QueryValueEx(key, "InstallLocation")[0]
+                        return super().find_launcher_path(
+                            game_id,
+                            folder=folder,
+                            folder_path=directory,
+                            exe=os.path.join(
+                                directory, winreg.QueryValueEx(key, REGISTRY_EXE_KEYS[game_id])[0]
+                            ),
+                        )
+                except OSError:
+                    pass
+        return super().find_launcher_path(game_id, folder=folder)
+
+    def uninstall(self, game_id):
+        targetDisplayName = None
+        if game_id == GameID.Minecraft:
+            targetDisplayName = "Minecraft Launcher"
+        elif game_id == GameID.MinecraftDungeons:
+            targetDisplayName = "Minecraft Dungeons Launcher"
+        for start_path in REGISTRY_START_PATHS:
+            for software_path in SOFTWARE_PATHS:
+                reg = winreg.ConnectRegistry(None, start_path)
+                try:
+                    key = winreg.OpenKey(reg, software_path + WIN_UNINSTALL_RELATIVE_LOCATION)
+                except OSError:
+                    continue
                 for i in range(0, winreg.QueryInfoKey(key)[0]):
                     try:
                         subkey_name = winreg.EnumKey(key, i)
                         with winreg.OpenKey(key, subkey_name) as subkey:
-                            if winreg.QueryValueEx(subkey,'DisplayName')[0] == 'Minecraft Launcher':
-                                return winreg.QueryValueEx(subkey, 'UninstallString')[0]
+                            if winreg.QueryValueEx(subkey, "DisplayName")[0] == targetDisplayName:
+                                utils.run(winreg.QueryValueEx(subkey, "UninstallString")[0])
+                                return
                     except OSError:
-                        continue
-        else:
-            pass
+                        pass
+                winreg.CloseKey(key)
 
-    def is_minecraft_still_running(self):
-        if self.running_process and self.running_process.is_running():
-            return True
-        elif self.running_process and not self.running_process.is_running():
-            self.running_process = None
-            return False
 
-    async def was_minecraft_launched(self, process_iter_interval=0.15):
-        for process in psutil.process_iter(attrs=['name', 'exe'], ad_value=''):
-            await asyncio.sleep(process_iter_interval)
-            if process.info['name'].lower() == "minecraftlauncher.exe" or process.info['exe'] == "/Applications/Minecraft.app/Contents/MacOS/launcher":
-                log.info(f"Found a running game!")
-                self.running_process = process
-                return True
-        self.running_process = None
-        return False
+class MacLocalClient(LocalClient):
+    def find_launcher_path(self, game_id, *, folder=False):
+        if game_id == GameID.Minecraft:
+            potential_path = "/Applications/Minecraft.app"
+            if os.path.exists(potential_path):
+                return super().find_launcher_path(game_id, folder=folder, exe=potential_path)
+        return super().find_launcher_path(game_id, folder=folder)
+
+    def uninstall(self, game_id):
+        utils.send2trash(self.find_launcher_path(game_id, folder=True))

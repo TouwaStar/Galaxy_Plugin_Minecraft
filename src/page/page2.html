@@ -1,0 +1,122 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Set your MultiMC path</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      button:hover {
+        cursor: pointer;
+      }
+      .main-footer__button--primary {
+        margin-left: 0;
+      }
+      .forgot-password {
+        display: inline-block;
+        margin-left: 15px;
+      }
+      .error-message {
+        display: none;
+        margin-bottom: 5px;
+      }
+      .show-error-message {
+        display: flex;
+      }
+      .error-icon {
+        height: 15px;
+        width: 15px;
+      }
+      .info-message {
+        display: flex;
+        color: #f2f2f266;
+      }
+      strong {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <header class="main-header">
+          <div class="main-header__container">
+            <div class="main-header__title">
+              <h1 class="title">Set your MultiMC path</h1>
+              <p class="subtitle">To launch it through GOG Galaxy</p>
+            </div>
+          </div>
+        </header>
+        <section class="main-content">
+          <form
+            action="/finished"
+            method="GET"
+            id="main-form"
+            class="main-form"
+          >
+            <legend>
+              Input the full path to MultiMC.exe or MultiMC.app.
+              <br />
+              (eg. "D:\Programs\MultiMC\MultiMC.exe" or "/Applications/MultiMC.app").
+              <br />
+              <br />
+              If you don't want to use MultiMC, leave the field blank.
+            </legend>
+            <div class="field-group">
+              <label>MultiMC.exe path</label>
+              <input
+                class="basic-input login-input"
+                type="text"
+                name="path"
+                id="path-input"
+                value=""
+              />
+            </div>
+            <p class="error-message info-message">
+              <img src="img/icon-info.svg" alt="" class="error-icon" />
+              If normal/vanilla Minecraft is not installed, you will not be able
+              to install it via GOG Galaxy as Minecraft will show up as
+              installed.
+            </p>
+            <p class="error-message" id="error-message">
+              <img src="img/icon-error.svg" alt="" class="error-icon" />
+              The path is invalid or leads to something that is not an
+              executable, please try again.
+            </p>
+          </form>
+        </section>
+        <footer class="main-footer">
+          <div class="main-footer__container">
+            <button
+              class="basic-button main-footer__button main-footer__button--primary"
+              type="submit"
+              form="main-form"
+            >
+              Continue
+            </button>
+            <a
+              class="forgot-password"
+              href="https://multimc.org/"
+              target="_blank"
+            >
+              Learn More
+            </a>
+            <a class="forgot-password" href="/finished?install=true">
+              Install MultiMC
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      input = document.getElementById("path-input");
+      if (params.has("path")) input.value = params.get("path");
+      if (params.get("errored") === "true") {
+        document
+          .getElementById("error-message")
+          .classList.add("show-error-message");
+        input.classList.add("errored");
+      }
+    </script>
+  </body>
+</html>

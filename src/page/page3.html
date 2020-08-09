@@ -1,0 +1,95 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finish</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    button:hover {
+      cursor: pointer;
+    }
+
+    .main-footer__button--primary {
+      margin-left: 0;
+    }
+
+    .main-content {
+      height: unset;
+      padding: unset;
+    }
+
+    .main-form legend {
+      margin-bottom: 0;
+      font-size: 16px;
+      display: none;
+      padding: 30px;
+    }
+
+    .error-message {
+      display: none;
+      margin-bottom: 5px;
+    }
+
+    .show-error-message {
+      display: flex;
+    }
+
+    .error-icon {
+      height: 15px;
+      width: 15px;
+    }
+
+    .info-message {
+      color: #f2f2f266;
+      margin: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="content">
+      <header class="main-header">
+        <div class="main-header__container">
+          <div class="main-header__title">
+            <h1 class="title">You're done!</h1>
+            <p class="subtitle">
+              Tap Ok to finish
+            </p>
+          </div>
+        </div>
+      </header>
+      <section class="main-content">
+        <form action="/finished" method="GET" id="main-form" class="main-form">
+          <p>
+          <p class="error-message info-message" id="multimcfinished">
+            <img src="img/icon-info.svg" alt="" class="error-icon" />
+            If normal/vanilla Minecraft is not installed, you will not be able
+            to install it via GOG Galaxy as Minecraft will show up as
+            installed.
+          </p>
+          </p>
+        </form>
+      </section>
+      <footer class="main-footer">
+        <div class="main-footer__container">
+          <button class="basic-button main-footer__button main-footer__button--primary" type="submit" form="main-form">
+            Ok
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("multimc") === "true") {
+      document
+        .getElementById("multimcfinished")
+        .classList.add("show-error-message");
+    }
+  </script>
+</body>
+
+</html>
