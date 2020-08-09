@@ -15,7 +15,7 @@ _Note: I haven't tested it on mac yet but it should work._
 _How to change what games I own (owned games selection)?_ Just disconnect and reconnect. The play time should be kept. If there is an issue please submit an issue.
 
 ## Credits
-
+- Minecraft Dungeons and MultiMC support by [urwrstkn8mare](https://github.com/urwrstkn8mare).
 - Build script ([build.py](build.py)) by [urwrstkn8mare](https://github.com/urwrstkn8mare). ([Source](https://gist.github.com/urwrstkn8mare/78d8377562d8719f3bd1f72f9c4e7516))
 - `double_click_effect` decorator ([decorators.py](src/decorators.py)) by [UncleGoogle](https://github.com/UncleGoogle). ([Source](https://github.com/UncleGoogle/galaxy-integration-humblebundle/blob/b11918aefac05b904964a8d5330ee1547f11793c/src/utils/decorators.py) - a little modified)
 - [style.css](src/page/css/style.css), [fonts](src/page/fonts/), [icon-error.svg](src/page/img/icon-error.svg) by [FriendsOfGalaxy](https://github.com/FriendsOfGalaxy). ([Source](https://github.com/FriendsOfGalaxy/galaxy-integration-steam/commit/ddc594dee637eabda2743370f17efbe4d1dad1bc))
