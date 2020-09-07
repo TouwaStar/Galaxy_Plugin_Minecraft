@@ -1,12 +1,12 @@
 {
-    "name": "Galaxy Minecraft plugin",
-    "platform": "minecraft",
-    "guid": "cb57391f-1675-35b1-05c0-896d43bdf8f4",
-    "version": "0.8.4",
-    "description": "Galaxy Minecraft plugin",
-    "author": "TouwaStar",
-    "email": "yowosek@gmail.com.com",
-    "url": "https://github.com/TouwaStar/Galaxy_Plugin_Minecraft",
-    "script": "plugin.py",
-    "update_url": "https://raw.githubusercontent.com/FriendsOfGalaxy/galaxy-integration-minecraft/master/current_version.json"
+  "name": "Galaxy Minecraft plugin",
+  "platform": "minecraft",
+  "guid": "cb57391f-1675-35b1-05c0-896d43bdf8f4",
+  "version": "1.0.0",
+  "description": "Galaxy Minecraft plugin",
+  "author": "TouwaStar",
+  "email": "yowosek@gmail.com.com",
+  "url": "https://github.com/TouwaStar/Galaxy_Plugin_Minecraft",
+  "script": "plugin.py",
+  "update_url": "https://raw.githubusercontent.com/FriendsOfGalaxy/galaxy-integration-minecraft/master/current_version.json"
 }
