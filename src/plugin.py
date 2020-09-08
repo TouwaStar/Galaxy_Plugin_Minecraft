@@ -20,6 +20,7 @@ from consts import (
     GAME_NAMES,
     IS_WINDOWS,
     INSTALLED_FOLDER_PATH,
+    GAMES,
 )
 import utils
 import multimc
@@ -53,51 +54,61 @@ class MinecraftPlugin(Plugin):
             if stored_credentials["multimcpath"] != "null":
                 self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
             return Authentication("mojang_user", "Mojang User")
-        return utils.get_next_step("Select Owned Games", 695, 695, "page1")
+        return utils.get_next_step("Select Owned Games", 720, 720, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
         def auth():
-            self.store_credentials(
-                {
-                    "owned": json.dumps(self.owned),
-                    "multimcpath": "null" if self.multimc is None else self.multimc.path,
-                }
-            )
-            return Authentication("mojang_user", "Mojang User")
+            to_store = {
+                "owned": json.dumps(self.owned),
+                "multimcpath": "null" if self.multimc is None else self.multimc.path,
+            }
+            self.store_credentials(to_store)
+            return asyncio.run(self.authenticate(stored_credentials=to_store))
 
         params = urllib.parse.parse_qs(
             urllib.parse.urlsplit(credentials["end_uri"]).query, keep_blank_values=True
         )
         log.debug(f"Params: {params}")
-        if len(params) == 0:
-            return auth()
-        elif "install" in params:
-            webbrowser.open_new("https://multimc.org/#Download")
-            return utils.get_next_step("Set your MultiMC path", 475, 445, "page2")
-        elif "path" in params:
-            raw_path = params["path"][0]
-            if raw_path == "":
+        if "open" in params:
+            webbrowser.open_new(params["open"][0])
+        if "install_mc" in params and params["install_mc"][0] == "true":
+            await self.install_game(GameID.Minecraft)
+        if "next" in params:
+            nxt = params["next"][0]
+            if nxt == "page2":
+                new_params = ""
+                if "path" in params:
+                    raw_path = params["path"][0]
+                    new_params = f"?path={urllib.parse.quote(raw_path)}"
+                for game_id in GAMES:
+                    if game_id in params and params[game_id][0] == "on":
+                        self.owned.append(game_id)
+                return utils.get_next_step(
+                    "Set your MultiMC path", 505, 505, "page2", params=new_params
+                )
+            elif nxt == "page3":
+                if "path" in params:
+                    raw_path = params["path"][0]
+                    if raw_path != "":
+                        path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
+                        try:
+                            self.multimc = multimc.MultiMCClient(path)
+                            return utils.get_next_step(
+                                "Finished", 410, 355, "page3", params="?multimc=true"
+                            )
+                        except multimc.PathNotExectuable:
+                            return utils.get_next_step(
+                                "Set your MultiMC path",
+                                490,
+                                515,
+                                "page2",
+                                params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
+                            )
+                return utils.get_next_step("Finished", 310, 310, "page3")
+            elif nxt == "close":
                 return auth()
-            else:
-                path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
-                try:
-                    self.multimc = multimc.MultiMCClient(path)
-                    return utils.get_next_step(
-                        "Finished", 350, 300, "page3", params="?multimc=true"
-                    )
-                except multimc.PathNotExectuable:
-                    return utils.get_next_step(
-                        "Set your MultiMC path",
-                        445,
-                        445,
-                        "page2",
-                        params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
-                    )
-        else:
-            for game_id in params.keys():
-                if game_id in [GameID.Minecraft, GameID.MinecraftDungeons]:
-                    self.owned.append(game_id)
-            return utils.get_next_step("Set your MultiMC path", 475, 445, "page2")
+
+        log.warning("if you see this, something is wrong")
 
     async def get_owned_games(self):
         log.debug(f"self.owned: {self.owned}")

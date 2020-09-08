@@ -57,8 +57,8 @@ def get_next_step(
         "web_session",
         {
             "window_title": title,
-            "window_width": width + 20,
-            "window_height": height + 30,
+            "window_width": width,
+            "window_height": height,
             "start_uri": pathlib.Path(os.path.join(DIRNAME, "page", f"{page}.html")).as_uri()
             + params,
             "end_uri_regex": end_uri_regex,
