@@ -121,21 +121,15 @@ class MinecraftPlugin(Plugin):
         elif game_id == GameID.MinecraftDungeons:
             return OSCompatibility.Windows
 
-    async def prepare_local_size_context(self, game_ids):
-        sizes = []
-        for game_id in game_ids:
-            size = await utils.get_size_at_path(
-                self.local_client.find_launcher_path(game_id, folder=True)
-            )
-            if game_id == GameID.Minecraft and self._multimc_enabled():
-                if size is None:
-                    size = 0
-                size += await utils.get_size_at_path(self.multimc.folder)
-            sizes.append(size)
-        return dict(zip(game_ids, sizes))
-
     async def get_local_size(self, game_id: str, context):
-        return context[game_id]
+        size = await utils.get_size_at_path(
+            self.local_client.find_launcher_path(game_id, folder=True)
+        )
+        if game_id == GameID.Minecraft and self._multimc_enabled():
+            if size is None:
+                size = 0
+            size += await utils.get_size_at_path(self.multimc.folder)
+        return size
 
     async def install_game(self, game_id):
         if game_id == GameID.Minecraft:
