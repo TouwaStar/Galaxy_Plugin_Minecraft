@@ -38,13 +38,7 @@ class LocalClient:
         return exe if not folder else folder_path
 
     def is_game_still_running(self, game_id) -> bool:
-        rp = self.running_games[game_id]  # Just an alias
-        if rp is not None and rp.poll() is None:
-            return True
-        elif rp is not None and not rp.poll() is not None:
-            # Can't use rp alias as it won't update the dict.
-            self.running_games[game_id] = None
-        return False
+        return self.running_games[game_id] and self.running_games[game_id].poll() is None
 
     def launch(self, game_id):
         log.info(f"Launching {game_id}")
