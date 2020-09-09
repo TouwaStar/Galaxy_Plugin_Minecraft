@@ -45,6 +45,9 @@ class MinecraftPlugin(Plugin):
         self.owned = []
         self.multimc: multimc.MultiMCClient = None
 
+    def _authenticate(self):
+        return Authentication("mojang_user", "Mojang User")
+
     async def authenticate(self, stored_credentials=None):
         log.debug(f"stored_credentials: {stored_credentials}")
         if stored_credentials is not None and utils.IS(
@@ -53,17 +56,18 @@ class MinecraftPlugin(Plugin):
             self.owned = json.loads(stored_credentials["owned"])
             if stored_credentials["multimcpath"] != "null":
                 self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
-            return Authentication("mojang_user", "Mojang User")
+            return self._authenticate()
         return utils.get_next_step("Select Owned Games", 720, 720, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
         def auth():
-            to_store = {
-                "owned": json.dumps(self.owned),
-                "multimcpath": "null" if self.multimc is None else self.multimc.path,
-            }
-            self.store_credentials(to_store)
-            return asyncio.run(self.authenticate(stored_credentials=to_store))
+            self.store_credentials(
+                {
+                    "owned": json.dumps(self.owned),
+                    "multimcpath": "null" if self.multimc is None else self.multimc.path,
+                }
+            )
+            return self._authenticate()
 
         params = urllib.parse.parse_qs(
             urllib.parse.urlsplit(credentials["end_uri"]).query, keep_blank_values=True
