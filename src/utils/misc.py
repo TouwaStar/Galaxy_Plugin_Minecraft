@@ -36,13 +36,16 @@ def run(cmd, *, shell=True):
     return subprocess.Popen(cmd, shell=shell)
 
 
-def download(url) -> str:
-    log.info(f"Downloading: {url}")
-    r = requests.get(url)
-    download_path = os.path.join(tempfile.gettempdir(), url.split("/")[-1])
-    with open(download_path, "wb") as f:
-        f.write(r.content)
-    return download_path
+async def download(url) -> str:
+    def _download():
+        log.info(f"Downloading: {url}")
+        r = requests.get(url)
+        download_path = os.path.join(tempfile.gettempdir(), url.split("/")[-1])
+        with open(download_path, "wb") as f:
+            f.write(r.content)
+        return download_path
+
+    return await asyncio.get_running_loop().run_in_executor(None, _download)
 
 
 def send2trash(path):
