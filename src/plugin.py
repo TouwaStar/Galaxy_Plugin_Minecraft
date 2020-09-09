@@ -237,11 +237,11 @@ class MinecraftPlugin(Plugin):
             )
         else:
             try:
-                file = open(self.play_time_cache_path, "r")
-                for line in file.readlines():
-                    if line[:1] != "#":
-                        self.game_time_cache = pickle.loads(bytes.fromhex(line))
-                        break
+                with open(self.play_time_cache_path, "r") as file:
+                    for line in file.readlines():
+                        if line[:1] != "#":
+                            self.game_time_cache = pickle.loads(bytes.fromhex(line))
+                            break
             except FileNotFoundError:
                 self.game_time_cache = None
         self.game_time_tracker = time_tracker.TimeTracker(game_time_cache=self.game_time_cache)
