@@ -1,18 +1,12 @@
 # GOG Galaxy Minecraft Integration
 
-An Minecraft integration for GOG Galaxy 2.0. Installable via GOG Galaxy (just use the search).
-
-![example](example.gif)
+An Minecraft integration for GOG Galaxy 2.0. Installable via GOG Galaxy (see GIF below).
 
 [![1.0.0](https://img.shields.io/badge/version-1.0.0-blue)](https://GitHub.com/urwrstkn8mare/galaxy-riot-integration/releases/)
 [![MIT License](https://img.shields.io/github/license/TouwaStar/Galaxy_Plugin_Minecraft)](https://github.com/urwrstkn8mare/TouwaStar/Galaxy_Plugin_Minecraft/fog_release/LICENSE)
 [![1.0.0 Downloads](https://img.shields.io/github/downloads/FriendsOfGalaxy/galaxy-integration-minecraft/1.0.0/total.svg)](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/releases)
 
-_To see [releases](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/releases), go to [FriendsOfGalaxy](https://github.com/FriendsOfGalaxy)'s [fork](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft)._
-
-## Build
-
-`python3 build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
+![example](example.gif)
 
 ## FAQ
 
@@ -28,3 +22,7 @@ _How to change what games I own (owned games selection)?_ Just disconnect and re
 - Uses [imgCheckbox](https://jcuenod.github.io/imgCheckbox/) by [jcuenod](https://github.com/jcuenod)
 - Uses [jQuery](https://jquery.com/)
 - Uses [galaxyutils](https://pypi.org/project/galaxyutils/) by [tylerbrawl](https://github.com/tylerbrawl) and other python packages. Look at [requirements.txt](requirements.txt) for other packages used by this integration.
+
+## Build
+
+`python3 build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
