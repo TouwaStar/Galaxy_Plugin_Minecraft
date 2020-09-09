@@ -102,8 +102,8 @@ class MinecraftPlugin(Plugin):
                         except multimc.PathNotExectuable:
                             return misc.get_next_step(
                                 "Set your MultiMC path",
-                                490,
-                                515,
+                                530,
+                                505,
                                 "page2",
                                 params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
                             )
