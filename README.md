@@ -12,6 +12,15 @@ An Minecraft integration for GOG Galaxy 2.0. Installable via GOG Galaxy (see GIF
 
 _How to change what games I own (owned games selection)?_ Just disconnect and reconnect. The play time should be kept. If there is an issue please submit an issue.
 
+## Todo
+
+- [ ] Finish [INSTALL_MULTIMC.md](INSTALL_MULTIMC.md)
+- [ ] Refactor local.py (see comments in [local.py](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8/files#diff-17a1a4cd0d3d33d01fc12d27cd7a4d4c) for [FoG PR](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8))
+- [ ] Clean up the logging
+- [ ] Add better commenting/documentation of code
+- [ ] Add feature to fetch ownership + username from Mojang API. (see [comment](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8#discussion_r482571642) in [FoG PR](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8))
+- [ ] Add Minecraft Education edition support
+
 ## Credits
 
 - Minecraft Dungeons and MultiMC support by [urwrstkn8mare](https://github.com/urwrstkn8mare).
