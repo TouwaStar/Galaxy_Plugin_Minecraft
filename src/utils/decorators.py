@@ -16,7 +16,7 @@ def double_click_effect(
 ):
     """
     Decorator of asynchronious function that allows to call synchonious `effect` if
-    the function was called second time within `timeout` seconds and `if_func` must be True.
+    the function was called another time within `timeout` seconds and `if_func` is True.
     ---
     To decorate methods of class instances, `effect` and `if_func` should be str matching
     the method name.
