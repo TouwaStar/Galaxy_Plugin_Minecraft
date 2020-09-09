@@ -9,7 +9,6 @@ from galaxy.api.plugin import (
 )
 from galaxy.api.consts import LocalGameState, LicenseType, OSCompatibility, Platform
 from galaxy.api.types import LicenseInfo
-from galaxyutils import time_tracker
 
 from local import WindowsLocalClient, MacLocalClient
 from consts import (
@@ -22,9 +21,9 @@ from consts import (
     INSTALLED_FOLDER_PATH,
     GAMES,
 )
-import utils
+from utils import misc, time_tracker
+from utils.decorators import double_click_effect
 import multimc
-from decorators import double_click_effect
 from version import __version__
 
 
@@ -50,14 +49,14 @@ class MinecraftPlugin(Plugin):
 
     async def authenticate(self, stored_credentials=None):
         log.debug(f"stored_credentials: {stored_credentials}")
-        if stored_credentials is not None and utils.IS(
+        if stored_credentials is not None and misc.IS(
             ["owned", "multimcpath"], IN=stored_credentials
         ):
             self.owned = json.loads(stored_credentials["owned"])
             if stored_credentials["multimcpath"] != "null":
                 self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
             return self._authenticate()
-        return utils.get_next_step("Select Owned Games", 720, 720, "page1")
+        return misc.get_next_step("Select Owned Games", 720, 720, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
         def auth():
@@ -87,7 +86,7 @@ class MinecraftPlugin(Plugin):
                 for game_id in GAMES:
                     if game_id in params and params[game_id][0] == "on":
                         self.owned.append(game_id)
-                return utils.get_next_step(
+                return misc.get_next_step(
                     "Set your MultiMC path", 505, 505, "page2", params=new_params
                 )
             elif nxt == "page3":
@@ -97,18 +96,18 @@ class MinecraftPlugin(Plugin):
                         path = os.path.expanduser(os.path.expandvars(os.path.abspath(raw_path)))
                         try:
                             self.multimc = multimc.MultiMCClient(path)
-                            return utils.get_next_step(
+                            return misc.get_next_step(
                                 "Finished", 410, 355, "page3", params="?multimc=true"
                             )
                         except multimc.PathNotExectuable:
-                            return utils.get_next_step(
+                            return misc.get_next_step(
                                 "Set your MultiMC path",
                                 490,
                                 515,
                                 "page2",
                                 params=f"?errored=true&path={urllib.parse.quote(raw_path)}",
                             )
-                return utils.get_next_step("Finished", 310, 310, "page3")
+                return misc.get_next_step("Finished", 310, 310, "page3")
             elif nxt == "close":
                 return auth()
 
@@ -137,13 +136,13 @@ class MinecraftPlugin(Plugin):
             return OSCompatibility.Windows
 
     async def get_local_size(self, game_id: str, context):
-        size = await utils.get_size_at_path(
+        size = await misc.get_size_at_path(
             self.local_client.find_launcher_path(game_id, folder=True)
         )
         if game_id == GameID.Minecraft and self._multimc_enabled():
             if size is None:
                 size = 0
-            size += await utils.get_size_at_path(self.multimc.folder)
+            size += await misc.get_size_at_path(self.multimc.folder)
         return size
 
     async def install_game(self, game_id):
@@ -154,9 +153,9 @@ class MinecraftPlugin(Plugin):
         else:
             log.warning(f"Uknown game_id to install: {game_id}")
             return
-        installer_path = utils.download(url)
+        installer_path = misc.download(url)
         log.info(f"Installing {game_id} by launching: {installer_path}")
-        utils.open_path(installer_path)
+        misc.open_path(installer_path)
 
     def _launch_multimc(self):
         self.multimc.launch()
@@ -223,7 +222,7 @@ class MinecraftPlugin(Plugin):
         else:
             multimc_time = GameTime(game_id, 0, None)
         time = tracked_time.time_played + multimc_time.time_played
-        lastPlayed = utils.compare(tracked_time.last_played_time, multimc_time.last_played_time)
+        lastPlayed = misc.compare(tracked_time.last_played_time, multimc_time.last_played_time)
         log.debug(f"Got game time: {time}")
         if time == 0 or lastPlayed is None:
             return None
