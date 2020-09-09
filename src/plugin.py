@@ -153,7 +153,7 @@ class MinecraftPlugin(Plugin):
         else:
             log.warning(f"Uknown game_id to install: {game_id}")
             return
-        installer_path = misc.download(url)
+        installer_path = await misc.download(url)
         log.info(f"Installing {game_id} by launching: {installer_path}")
         misc.open_path(installer_path)
 
