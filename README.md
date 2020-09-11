@@ -15,11 +15,14 @@ _How to change what games I own (owned games selection)?_ Just disconnect and re
 ## Todo
 
 - [ ] Finish [INSTALL_MULTIMC.md](INSTALL_MULTIMC.md)
-- [ ] Refactor local.py (see comments in [local.py](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8/files#diff-17a1a4cd0d3d33d01fc12d27cd7a4d4c) for [FoG PR](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8))
+- [ ] Refactor local.py (see [these comments in local.py](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8/files#diff-17a1a4cd0d3d33d01fc12d27cd7a4d4c))
+- [ ] Reduce overwhelming information on [`page2`](src/page/page2.html) or split it into multiple pages. (see [this comment](https://github.com/TouwaStar/Galaxy_Plugin_Minecraft/pull/10#discussion_r486885489))
 - [ ] Clean up the logging
 - [ ] Add better commenting/documentation of code
-- [ ] Add feature to fetch ownership + username from Mojang API. (see [comment](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8#discussion_r482571642) in [FoG PR](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8))
+- [ ] Add feature to fetch ownership + username from Mojang API. (see [this comment](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8#discussion_r482571642))
 - [ ] Add Minecraft Education edition support
+
+Note: _This list is in no particular order._
 
 ## Credits
 
