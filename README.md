@@ -35,6 +35,12 @@ Note: _This list is in no particular order._
 - Uses [jQuery](https://jquery.com/)
 - Uses [galaxyutils](https://pypi.org/project/galaxyutils/) by [tylerbrawl](https://github.com/tylerbrawl) and other python packages. Look at [requirements.txt](requirements.txt) for other packages used by this integration.
 
-## Build
+## Development
 
-`python3 build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
+First install development dependencies with: `pip install -r requirements/dev.txt`.
+
+Then run:
+
+- `inv pack` to build releases.
+- `inv install` to install integration to local GOG Galaxy.
+- `inv hotfix` to just overwrite the python files in the install directory.
