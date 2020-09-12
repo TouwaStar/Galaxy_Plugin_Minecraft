@@ -88,7 +88,9 @@ def install(c):
 
 @task
 def pack(c):
-    output = "itch_" + MANIFEST["guid"]
-    release_path = os.path.join(RELEASE_DIR, f"{MANIFEST['platform']}_v{MANIFEST['version']}")
+    output = f"{MANIFEST['platform']}_{MANIFEST['guid']}"
+    release_path = os.path.join(RELEASE_DIR, f"{MANIFEST['platform']}_v{MANIFEST['version']}.zip")
+    if not os.path.isdir(RELEASE_DIR):
+        os.mkdir(RELEASE_DIR)
     build(c, output=output, ziparchive=release_path)
     rmtree(output)
