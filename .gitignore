@@ -2,7 +2,5 @@
 *.pyo
 *__pycache__
 *.DS_STORE
-out
+releases
 .vscode
-galaxy-minecraft-integration-windows.zip
-galaxy-minecraft-integration-mac.zip

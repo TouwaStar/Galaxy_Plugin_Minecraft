@@ -4,14 +4,19 @@ IS_WINDOWS = platform.system().lower() == "windows"
 
 if IS_WINDOWS:
     import winreg
+
     REGISTRY_START_PATHS = [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]
 else:
     REGISTRY_START_PATHS = []
+
 
 class GameID:
     Minecraft = "mc"
     MinecraftDungeons = "mcd"
     MinecraftEducationEdition = "mcedu"
+
+
+GAMES = [GameID.Minecraft, GameID.MinecraftDungeons]
 
 
 INSTALLED_FOLDER_PATH = os.path.abspath(

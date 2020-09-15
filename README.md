@@ -1,18 +1,31 @@
 # GOG Galaxy Minecraft Integration
 
-An Minecraft integration for GOG Galaxy 2.0.
+An Minecraft integration for GOG Galaxy 2.0. Installable via GOG Galaxy (see GIF below).
+
+[![1.0.1](https://img.shields.io/badge/version-1.0.1-blue)](https://GitHub.com/urwrstkn8mare/galaxy-riot-integration/releases/)
+[![MIT License](https://img.shields.io/github/license/TouwaStar/Galaxy_Plugin_Minecraft)](https://github.com/urwrstkn8mare/TouwaStar/Galaxy_Plugin_Minecraft/fog_release/LICENSE)
+[![1.0.1 Downloads](https://img.shields.io/github/downloads/FriendsOfGalaxy/galaxy-integration-minecraft/1.0.1/total.svg)](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/releases)
 
 ![example](example.gif)
-
-## Build
-
-`python3 build.py -r` This will make a zip with the integration and all necessary packages for the operating system run on. You can specify a platform but I've found that to not work well when building for another platform on a platform (eg. building for mac on windows). For more information run `python build.py -h`.
 
 ## FAQ
 
 _How to change what games I own (owned games selection)?_ Just disconnect and reconnect. The play time should be kept. If there is an issue please submit an issue.
 
+## Todo
+
+- [ ] Finish [INSTALL_MULTIMC.md](INSTALL_MULTIMC.md)
+- [ ] Refactor local.py (see [these comments in local.py](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8/files#diff-17a1a4cd0d3d33d01fc12d27cd7a4d4c))
+- [ ] Reduce overwhelming information on [`page2`](src/page/page2.html) or split it into multiple pages. (see [this comment](https://github.com/TouwaStar/Galaxy_Plugin_Minecraft/pull/10#discussion_r486885489))
+- [ ] Clean up the logging
+- [ ] Add better commenting/documentation of code
+- [ ] Add feature to fetch ownership + username from Mojang API. (see [this comment](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/pull/8#discussion_r482571642))
+- [ ] Add Minecraft Education edition support
+
+Note: _This list is in no particular order._
+
 ## Credits
+
 - Minecraft Dungeons and MultiMC support by [urwrstkn8mare](https://github.com/urwrstkn8mare).
 - Build script ([build.py](build.py)) by [urwrstkn8mare](https://github.com/urwrstkn8mare). ([Source](https://gist.github.com/urwrstkn8mare/78d8377562d8719f3bd1f72f9c4e7516))
 - `double_click_effect` decorator ([decorators.py](src/decorators.py)) by [UncleGoogle](https://github.com/UncleGoogle). ([Source](https://github.com/UncleGoogle/galaxy-integration-humblebundle/blob/b11918aefac05b904964a8d5330ee1547f11793c/src/utils/decorators.py) - a little modified)
@@ -21,3 +34,13 @@ _How to change what games I own (owned games selection)?_ Just disconnect and re
 - Uses [imgCheckbox](https://jcuenod.github.io/imgCheckbox/) by [jcuenod](https://github.com/jcuenod)
 - Uses [jQuery](https://jquery.com/)
 - Uses [galaxyutils](https://pypi.org/project/galaxyutils/) by [tylerbrawl](https://github.com/tylerbrawl) and other python packages. Look at [requirements.txt](requirements.txt) for other packages used by this integration.
+
+## Development
+
+First install development dependencies with: `pip install -r requirements/dev.txt`.
+
+Then run:
+
+- `inv pack` to build releases.
+- `inv install` to install integration to local GOG Galaxy.
+- `inv hotfix` to just overwrite the python files in the install directory.

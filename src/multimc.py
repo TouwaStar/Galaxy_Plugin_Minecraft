@@ -3,7 +3,7 @@ import os, logging
 from galaxy.api.plugin import GameTime
 
 from consts import IS_WINDOWS, GameID
-import utils
+from utils import misc
 
 log = logging.getLogger(__name__)
 
@@ -40,12 +40,12 @@ class MultiMCClient:
                             if split_line[0] == "totalTimePlayed":
                                 time += int(split_line[1])
                             elif split_line[0] == "lastLaunchTime":
-                                lastPlayed = utils.compare(lastPlayed, int(split_line[1]))
+                                lastPlayed = misc.compare(lastPlayed, int(split_line[1]))
         log.debug(f"Got total MultiMC Time: {time / 60}")
         return GameTime(GameID, time / 60, lastPlayed)
 
     def launch(self):
-        self.process = utils.open_path(self.path)
+        self.process = misc.open_path(self.path)
 
     def running(self):
         if self.process is None:

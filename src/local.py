@@ -9,7 +9,7 @@ from consts import (
     WIN_UNINSTALL_RELATIVE_LOCATION,
     IS_WINDOWS,
 )
-import utils
+from utils import misc
 
 
 if IS_WINDOWS:
@@ -38,17 +38,11 @@ class LocalClient:
         return exe if not folder else folder_path
 
     def is_game_still_running(self, game_id) -> bool:
-        rp = self.running_games[game_id]  # Just an alias
-        if rp is not None and rp.poll() is None:
-            return True
-        elif rp is not None and not rp.poll() is not None:
-            # Can't use rp alias as it won't update the dict.
-            self.running_games[game_id] = None
-        return False
+        return self.running_games[game_id] and self.running_games[game_id].poll() is None
 
     def launch(self, game_id):
         log.info(f"Launching {game_id}")
-        self.running_games[game_id] = utils.open_path(self.find_launcher_path(game_id))
+        self.running_games[game_id] = misc.open_path(self.find_launcher_path(game_id))
 
     def uninstall(game_id):
         pass
@@ -94,7 +88,7 @@ class WindowsLocalClient(LocalClient):
                         subkey_name = winreg.EnumKey(key, i)
                         with winreg.OpenKey(key, subkey_name) as subkey:
                             if winreg.QueryValueEx(subkey, "DisplayName")[0] == targetDisplayName:
-                                utils.run(winreg.QueryValueEx(subkey, "UninstallString")[0])
+                                misc.run(winreg.QueryValueEx(subkey, "UninstallString")[0])
                                 return
                     except OSError:
                         pass
@@ -110,4 +104,4 @@ class MacLocalClient(LocalClient):
         return super().find_launcher_path(game_id, folder=folder)
 
     def uninstall(self, game_id):
-        utils.send2trash(self.find_launcher_path(game_id, folder=True))
+        misc.send2trash(self.find_launcher_path(game_id, folder=True))

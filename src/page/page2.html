@@ -53,13 +53,21 @@
             id="main-form"
             class="main-form"
           >
+            <input style="display: none" name="next" value="page3" />
             <legend>
-              Input the full path to MultiMC.exe or MultiMC.app.
-              <br />
-              (eg. "D:\Programs\MultiMC\MultiMC.exe" or "/Applications/MultiMC.app").
-              <br />
-              <br />
-              If you don't want to use MultiMC, leave the field blank.
+              <span style="font-weight: 600">
+                The below is only if you want to use MultiMC. Otherwise, leave
+                it blank and press 'continue'.
+              </span>
+              <span style="font-weight: 300">
+                <br />
+                <br />
+                Input the full path to MultiMC.exe or MultiMC.app.
+                <br />
+                (eg. "D:\Programs\MultiMC\MultiMC.exe" or
+                "/Applications/MultiMC.app").
+                <br />
+              </span>
             </legend>
             <div class="field-group">
               <label>MultiMC.exe path</label>
@@ -73,9 +81,9 @@
             </div>
             <p class="error-message info-message">
               <img src="img/icon-info.svg" alt="" class="error-icon" />
-              If normal/vanilla Minecraft is not installed, you will not be able
-              to install it via GOG Galaxy as Minecraft will show up as
-              installed.
+              If you use enable MultiMC support and normal/vanilla Minecraft is
+              not installed, you will not be able to install it via GOG Galaxy
+              as Minecraft will show up as installed.
             </p>
             <p class="error-message" id="error-message">
               <img src="img/icon-error.svg" alt="" class="error-icon" />
@@ -94,23 +102,45 @@
               Continue
             </button>
             <a
-              class="forgot-password"
+              class="forgot-password open"
               href="https://multimc.org/"
-              target="_blank"
+              id="learn-more"
+              onclick="update_href(this.id)"
             >
               Learn More
             </a>
-            <a class="forgot-password" href="/finished?install=true">
+            <a
+              class="forgot-password open"
+              href="https://github.com/MultiMC/MultiMC5/wiki/Getting-Started"
+              id="install-multimc"
+              onclick="update_href(this.id)"
+            >
               Install MultiMC
+            </a>
+            <a
+              class="forgot-password"
+              href="/finished?install_mc=true"
+              id="install-mc"
+              onclick="update_href(this.id)"
+            >
+              Install Minecraft
             </a>
           </div>
         </footer>
       </div>
     </div>
+
+    <script src="js/script.js"></script>
     <script>
+      function update_href(id) {
+        document.getElementById(id).href +=
+          "&next=page2&path=" +
+          encodeURIComponent(document.getElementById("path-input").value);
+      }
+
       const params = new URLSearchParams(window.location.search);
-      input = document.getElementById("path-input");
-      if (params.has("path")) input.value = params.get("path");
+      if (params.has("path"))
+        document.getElementById("path-input").value = params.get("path");
       if (params.get("errored") === "true") {
         document
           .getElementById("error-message")
