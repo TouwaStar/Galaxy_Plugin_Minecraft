@@ -2,10 +2,6 @@
 
 An Minecraft integration for GOG Galaxy 2.0. Installable via GOG Galaxy (see GIF below).
 
-[![1.0.1](https://img.shields.io/badge/version-1.0.1-blue)](https://GitHub.com/urwrstkn8mare/galaxy-riot-integration/releases/)
-[![MIT License](https://img.shields.io/github/license/TouwaStar/Galaxy_Plugin_Minecraft)](https://github.com/urwrstkn8mare/TouwaStar/Galaxy_Plugin_Minecraft/fog_release/LICENSE)
-[![1.0.1 Downloads](https://img.shields.io/github/downloads/FriendsOfGalaxy/galaxy-integration-minecraft/1.0.1/total.svg)](https://github.com/FriendsOfGalaxy/galaxy-integration-minecraft/releases)
-
 ![example](example.gif)
 
 ## FAQ
