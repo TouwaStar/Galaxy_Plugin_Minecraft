@@ -222,8 +222,6 @@ class MinecraftPlugin(Plugin):
         time = tracked_time.time_played + multimc_time.time_played
         lastPlayed = misc.compare(tracked_time.last_played_time, multimc_time.last_played_time)
         log.debug(f"Got game time: {time}")
-        if time == 0 or lastPlayed is None:
-            return GameTime(game_id, None, None)
         return GameTime(game_id, time, lastPlayed)
 
     def handshake_complete(self):
