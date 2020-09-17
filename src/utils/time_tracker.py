@@ -6,7 +6,4 @@ class TimeTracker(OGTimeTracker):
         return [game_id for game_id in self._running_games_dict]
 
 
-from galaxyutils.time_tracker import (  # noqa: ignore F401
-    GameNotTrackedException,
-    GamesStillBeingTrackedException,
-)
+from galaxyutils.time_tracker import GameNotTrackedException  # noqa: ignore F401
