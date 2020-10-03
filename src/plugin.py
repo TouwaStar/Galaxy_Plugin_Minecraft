@@ -9,6 +9,7 @@ from galaxy.api.plugin import (
 )
 from galaxy.api.consts import LocalGameState, LicenseType, OSCompatibility, Platform
 from galaxy.api.types import LicenseInfo
+from galaxy.api.errors import InvalidCredentials
 
 from local import WindowsLocalClient, MacLocalClient
 from consts import (
@@ -45,17 +46,19 @@ class MinecraftPlugin(Plugin):
         self.multimc: multimc.MultiMCClient = None
 
     def _authenticate(self):
-        return Authentication("mojang_user", "Mojang User")
+        return Authentication("Minecraft_ID", "Minecraft Player")
 
     async def authenticate(self, stored_credentials=None):
         log.debug(f"stored_credentials: {stored_credentials}")
-        if stored_credentials is not None and misc.IS(
-            ["owned", "multimcpath"], IN=stored_credentials
-        ):
-            self.owned = json.loads(stored_credentials["owned"])
-            if stored_credentials["multimcpath"] != "null":
-                self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
-            return self._authenticate()
+        if stored_credentials is not None:
+            if "dummy" in stored_credentials:
+                raise InvalidCredentials
+
+            if misc.IS(["owned", "multimcpath"], IN=stored_credentials):
+                self.owned = json.loads(stored_credentials["owned"])
+                if stored_credentials["multimcpath"] != "null":
+                    self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
+                return self._authenticate()
         return misc.get_next_step("Select Owned Games", 720, 720, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
