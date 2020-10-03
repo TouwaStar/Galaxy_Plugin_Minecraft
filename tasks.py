@@ -19,6 +19,9 @@ from distutils.dir_util import copy_tree
 
 from invoke import task
 from galaxy.tools import zip_folder_to_file
+import colorama
+
+colorama.init()
 
 
 with open(os.path.join("src", "manifest.json"), "r") as f:
@@ -34,19 +37,24 @@ elif sys.platform == "darwin":
 RELEASE_DIR = "releases"
 
 
+def print_task(string):
+    print(colorama.Fore.CYAN + string)
+    print(colorama.Style.RESET_ALL)
+
+
 @task
 def build(c, output="build", ziparchive=None):
     if os.path.exists(output):
-        print("--> Removing {} directory".format(output))
+        print_task("--> Removing {} directory".format(output))
         rmtree(output)
 
     # Firstly dependencies needs to be "flatten" with pip-compile as pip requires --no-deps if --platform is used
-    print("--> Flattening dependencies to temporary requirements file")
+    print_task("--> Flattening dependencies to temporary requirements file")
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
         c.run(f"pip-compile requirements/app.txt --output-file=-", out_stream=tmp)
 
     # Then install all stuff with pip to output folder
-    print("--> Installing with pip for specific version")
+    print_task("--> Installing with pip for specific version")
     args = [
         "pip",
         "install",
@@ -63,11 +71,11 @@ def build(c, output="build", ziparchive=None):
     c.run(" ".join(args), echo=True)
     os.unlink(tmp.name)
 
-    print("--> Copying source files")
+    print_task("--> Copying source files")
     copy_tree("src", output)
 
     if ziparchive is not None:
-        print("--> Compressing to {}".format(ziparchive))
+        print_task("--> Compressing to {}".format(ziparchive))
         zip_folder_to_file(output, ziparchive)
 
 
