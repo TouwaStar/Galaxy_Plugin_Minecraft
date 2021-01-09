@@ -59,7 +59,7 @@ class MinecraftPlugin(Plugin):
                 if stored_credentials["multimcpath"] != "null":
                     self.multimc = multimc.MultiMCClient(stored_credentials["multimcpath"])
                 return self._authenticate()
-        return misc.get_next_step("Select Owned Games", 720, 720, "page1")
+        return misc.get_next_step("Select Owned Games", 715, 725, "page1")
 
     async def pass_login_credentials(self, step, credentials, cookies):
         def auth():
