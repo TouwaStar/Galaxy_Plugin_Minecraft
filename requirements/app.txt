@@ -10,5 +10,5 @@ multidict==4.7.6          # via aiohttp, yarl
 requests==2.24.0          # via -r requirements.txt
 send2trash==1.5.0         # via -r requirements.txt
 typing-extensions==3.7.4.2  # via yarl
-urllib3==1.25.10          # via requests
+urllib3==1.26.5          # via requests
 yarl==1.5.1               # via aiohttp
